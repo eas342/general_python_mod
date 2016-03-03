@@ -2,6 +2,9 @@ from contextlib import contextmanager
 import os
 import sys
 import pdb
+import numpy as np
+import fnmatch
+import warnings
 
 @contextmanager
 def suppress_stdout():
@@ -47,4 +50,32 @@ def find_startline(filename,phrase,skipblank=False,zerobased=False):
                 counter=counter+1
            
     return linenum
+    
+def es_strmatch(text,list):
+## Searches the list for text (with wildcards)    
+## Returns the indices where it was found
+    
+    foundind = []
+    for ind, item in enumerate(list):
+        if fnmatch.fnmatch(item,text):
+            foundind.append(ind)
+    return foundind
+
+def robust_poly(x,y,polyord,sigreject=3.0,iteration=3):
+    goodp = np.where(np.isfinite(y))
+    for iter in range(iteration):
+        if len(goodp[0]) < polyord:
+            warntext = "Less than "+str(polyord)+"points accepted, returning flat line"
+            warnings.warn(warntext)
+            coeff = np.zeros(polyord)
+            coeff[0] = 1.0
+        else:           
+            coeff = np.polyfit(x[goodp],y[goodp],polyord)
+            ymod = np.poly1d(coeff)
+            resid = np.abs(ymod(x) - y)
+            madev = np.median(np.abs(resid - np.median(resid)))
+            goodp = np.where(np.abs(resid) < (sigreject * madev))
+
+        
+    return coeff
     
