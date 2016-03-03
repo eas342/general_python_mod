@@ -1,9 +1,12 @@
 import matplotlib.pyplot as plt
 from astropy.io import fits
 import pdb
+import matplotlib
 
 def plot_spextool(filename):
     #Plots a spectrum output by spextool
+    # Make a bigger font size
+    matplotlib.rcParams.update({'font.size': 18})
     hdulist = fits.open(filename)
 
     head = hdulist[0].header
@@ -24,6 +27,8 @@ def plot_spextool(filename):
         yunit = head['YUNITS']
   
     plt.ylabel('Flux ('+yunit+')')
-
+    
+    plt.tight_layout()
+	
     plt.show()
 
