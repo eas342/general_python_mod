@@ -2,6 +2,7 @@ import matplotlib.pyplot as plt
 from astropy.io import fits
 import pdb
 import matplotlib
+import numpy as np
 
 def plot_spextool(filename):
     #Plots a spectrum output by spextool
@@ -32,3 +33,12 @@ def plot_spextool(filename):
 	
     plt.show()
 
+def color_array(ncol):
+	
+	colcycle = np.array(['peru','brown','darkslategray','fuchsia','darkolivegreen',
+		'indigo','darkgoldenrod'])
+	navailable = len(colcycle)
+	colorarr = colcycle[np.mod(np.arange(ncol),navailable)]
+	return colorarr
+	
+	
