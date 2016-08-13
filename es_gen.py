@@ -62,9 +62,10 @@ def es_strmatch(text,list):
     return foundind
 
 def robust_poly(x,y,polyord,sigreject=3.0,iteration=3):
-    goodp = np.where(np.isfinite(y))
+    finitep = np.isfinite(y) & np.isfinite(x)
+    goodp = finitep ## Start with the finite points
     for iter in range(iteration):
-        if len(goodp[0]) < polyord:
+        if len(np.where(goodp)[0]) < polyord:
             warntext = "Less than "+str(polyord)+"points accepted, returning flat line"
             warnings.warn(warntext)
             coeff = np.zeros(polyord)
@@ -73,62 +74,9 @@ def robust_poly(x,y,polyord,sigreject=3.0,iteration=3):
             coeff = np.polyfit(x[goodp],y[goodp],polyord)
             ymod = np.poly1d(coeff)
             resid = np.abs(ymod(x) - y)
-            madev = np.median(np.abs(resid - np.median(resid)))
-            goodp = np.where(np.abs(resid) < (sigreject * madev))
-
+            madev = np.nanmedian(np.abs(resid - np.nanmedian(resid)))
+            goodp = (np.abs(resid) < (sigreject * madev))
+    
         
     return coeff
 
-def sigprint(number,nsig,dostop=False):
-    """
-    Returns a string with the given number of significant digits.
-    For numbers >= 1e4, and less than 0.001, it does exponential notation
-    This is almost what ":.3g".format(x) does, but in the case
-    of '{:.3g}'.format(2189), we want 2190 not 2.19e3. Also in the case of
-    '{:.3g}'.format(1), we want 1.00, not 1
-    """
-    
-    if ((abs(number) >= 1e-3) and (abs(number) < 1e4)) or number ==0:
-        place = decplace(number) - nsig + 1
-        decval = 10**place
-        outnum = np.round(np.float(number) / decval) * decval
-        if place >= 0: place=0
-        fmt='.'+str(int(abs(place)))+'f'
-    else:
-        stringnsig = str(int(nsig-1))
-        fmt = '.'+stringnsig+'e'
-        outnum=number
-    wholefmt = "{0:"+fmt+"}"
-    
-    return wholefmt.format(outnum)
-
-def decplace(number):
-    """
-    Finds the decimal place of the leading digit of a number. For 0, it assumes
-    a value of 0 (the one's digit)
-    """
-    if number == 0:
-        place = 0
-    else:
-        place = np.floor(np.log10(np.abs(number)))
-    return place
-
-def roundfromErr(number,error,numsigErr=2,simple=False):
-    """
-    Rounds a number appropriately from the error bars and returns a string.
-    Example: roundval, rounderr = roundfromErr(123.441,12.447) gives
-    123 and 12, for 123 +/- 12
-    """
-    ## Decimal place of last significant digit
-    decplaceUse = decplace(error) + 1 - numsigErr
-    numsigVal = decplace(number) - decplaceUse + 1
-    if simple == True:
-    ## This is a much simpler implementation taking advantage of g
-        valuestring = ("{0:."+str(int(numsigVal))+"g}").format(number)
-        errstring = ("{0:."+str(int(numsigErr))+"g}").format(error)
-    else:
-        valuestring = sigprint(number,numsigVal)
-        errstring = sigprint(error,numsigErr)
-    
-    return valuestring, errstring
-    
