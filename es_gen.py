@@ -50,7 +50,64 @@ def find_startline(filename,phrase,skipblank=False,zerobased=False):
                 counter=counter+1
            
     return linenum
+
+def search_file(fileName,phrase,occurence=1,zeroBased=False,skipBlank=False):
+    """ Searches a file for the Nth occurence of a phrase 
     
+    
+    Arguments
+    ----------
+    fileName: str
+        File name
+    phrase: str
+        Text to search for
+    occurrence: int
+        The Nth occrence to return the line number
+    zeroBased: bool, optional
+        Use zero-based counting if True, It uses one-based counting by default.
+    """
+    if zeroBased == True:
+        adjustment=0
+    else: adjustment = 1
+    
+    counter = 1
+    isFound = False
+    with open(fileName) as f:
+        for i, line in enumerate(f):
+            if phrase in line:
+                if counter == occurence:
+                    isFound = True
+                    return i + adjustment
+                    break
+                counter = counter + 1
+    if isFound == False:
+        print('Phrase '+phrase+' not found')
+        return -1
+
+def read_one_line(fileName,lineNumber,zeroBased=False):
+    """ Reads one line from a file, inspired by 
+    (http://stackoverflow.com/questions/2081836/reading-specific-lines-only-python)
+    
+    Arguments
+    ----------
+    filename: str
+        File name
+    lineNumber: int
+        number of the line
+    zeroBased: bool, optional
+        Use zero-based counting if True, It uses one-based counting by default.
+    """
+    if zeroBased == True:
+        adjustment=0
+    else: adjustment = 1
+    
+    with open(fileName) as f:
+        for i, line in enumerate(f):
+            if i == lineNumber-adjustment:
+                return line
+                break
+    
+
 def es_strmatch(text,list):
 ## Searches the list for text (with wildcards)    
 ## Returns the indices where it was found
