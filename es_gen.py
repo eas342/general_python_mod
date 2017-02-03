@@ -122,7 +122,7 @@ def robust_poly(x,y,polyord,sigreject=3.0,iteration=3):
     finitep = np.isfinite(y) & np.isfinite(x)
     goodp = finitep ## Start with the finite points
     for iter in range(iteration):
-        if len(np.where(goodp)[0]) < polyord:
+        if np.sum(goodp) < polyord:
             warntext = "Less than "+str(polyord)+"points accepted, returning flat line"
             warnings.warn(warntext)
             coeff = np.zeros(polyord)
