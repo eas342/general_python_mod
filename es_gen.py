@@ -5,6 +5,7 @@ import pdb
 import numpy as np
 import fnmatch
 import warnings
+from scipy.interpolate import UnivariateSpline, LSQUnivariateSpline
 
 @contextmanager
 def suppress_stdout():
@@ -118,7 +119,7 @@ def es_strmatch(text,list):
             foundind.append(ind)
     return foundind
 
-def robust_poly(x,y,polyord,sigreject=3.0,iteration=3):
+def robust_poly(x,y,polyord,sigreject=3.0,iteration=3,useSpline=False,knots=None):
     finitep = np.isfinite(y) & np.isfinite(x)
     goodp = finitep ## Start with the finite points
     for iter in range(iteration):
@@ -127,13 +128,24 @@ def robust_poly(x,y,polyord,sigreject=3.0,iteration=3):
             warnings.warn(warntext)
             coeff = np.zeros(polyord)
             coeff[0] = 1.0
-        else:           
-            coeff = np.polyfit(x[goodp],y[goodp],polyord)
-            ymod = np.poly1d(coeff)
-            resid = np.abs(ymod(x) - y)
+        else:
+            if useSpline == True:
+                if knots == None:
+                    spl = UnivariateSpline(x[goodp], y[goodp], k=polyord, s=sSpline)
+                else:
+                    spl = LSQUnivariateSpline(x[goodp], y[goodp], knots, k=polyord)
+                ymod = spl(x)
+            else:
+                coeff = np.polyfit(x[goodp],y[goodp],polyord)
+                yPoly = np.poly1d(coeff)
+                ymod = yPoly(x)
+            
+            resid = np.abs(ymod - y)
             madev = np.nanmedian(np.abs(resid - np.nanmedian(resid)))
             goodp = (np.abs(resid) < (sigreject * madev))
     
-        
-    return coeff
+    if useSpline == True:
+        return spl
+    else:
+        return coeff
 
