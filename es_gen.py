@@ -130,7 +130,7 @@ def robust_poly(x,y,polyord,sigreject=3.0,iteration=3,useSpline=False,knots=None
             coeff[0] = 1.0
         else:
             if useSpline == True:
-                if knots == None:
+                if knots is None:
                     spl = UnivariateSpline(x[goodp], y[goodp], k=polyord, s=sSpline)
                 else:
                     spl = LSQUnivariateSpline(x[goodp], y[goodp], knots, k=polyord)
